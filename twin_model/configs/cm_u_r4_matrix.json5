@@ -1,0 +1,26 @@
+// UNION-universe Table-1, fixed-length arm x analytic matrix embedding.
+// Signatures of exactly 4 parts (pairs_variable.py --sig-len 4; the pairs
+// preset 'r4'), tokens padded with -1 like every other run.
+// Differs from cm_u_r4_random ONLY in embedding init (keep in sync).
+[
+    {
+        name: 'cm_u_r4_matrix',
+        __parents__: ['default'],
+
+        // run metadata (logged to wandb, not read by the code)
+        data_format: 'variable_r',
+        sig_max_r: 16,
+        train_orders: '2-500',
+        eval_orders: '2-500',
+        eval_regime: 'transductive',
+        embedding_kind: 'analytic_d24_v2',
+        train_variant: 'sig4',
+
+        data_dir: 'pairs_union_r4',
+        output_dir: 'cm_u_r4',
+        wandb_run_name: 'cm_u_r4_matrix',
+
+        // embedding initialisation
+        embedding_path: 'analytic_d24_v2/embedding.npy',
+    },
+]

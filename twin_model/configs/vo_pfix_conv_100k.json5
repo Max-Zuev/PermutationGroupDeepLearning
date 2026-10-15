@@ -1,0 +1,31 @@
+// Order-aware pooling fix, quick arm 'convmax' on 100k pairs. Baseline:
+// vo_full_100k (plain max, same data): post-hoc 0.7346 old / 0.7424 big eval.
+//
+[
+    {
+        name: 'vo_pfix_conv_100k',
+        __parents__: ['default'],
+
+        // run metadata (logged to wandb, not read by the code)
+        data_format: 'variable_r_union',
+        sig_max_r: 16,
+        train_orders: '2-64',
+        eval_orders: '65-500',
+        eval_regime: 'extrapolation',
+        embedding_kind: 'random_normmatched',
+        train_variant: 'pfix_convmax_100k',
+
+        data_dir: 'pairs_union_subsets',
+        train_file: 'train_100000.csv',
+        eval_file: 'eval_gt64_masked.csv',
+        output_dir: 'varr_pfix_conv_100k',
+        wandb_run_name: 'vo_pfix_conv_100k',
+
+        // embedding initialisation
+        embedding_path: 'random_normmatched_d576.npy',
+
+        // schedule overrides
+        eval_per_samples: 10240,
+        tolerance_samples: 512000,
+    },
+]

@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --job-name=@@JOB_NAME@@
+#SBATCH --array=0-@@ARRAY_MAX@@
+#SBATCH --time=@@TIME@@
+#SBATCH --mem=@@MEM@@
+#SBATCH --cpus-per-task=@@CPUS@@
+#SBATCH --output=@@LOG_DIR@@/@@JOB_NAME@@_%A_%a.out
+#SBATCH --error=@@LOG_DIR@@/@@JOB_NAME@@_%A_%a.err
+# Variable-r tokenisation. Each array task tokenises exactly the groups the
+# plan file assigns to it (planned centrally by data/submit.py). RENDERED from
+# job_tokenise.sh.tmpl by data/submit.py -- edit data/pipeline.json.
+set -e
+module load @@MODULES@@
+cd @@REPO_DIR@@/data/data_tokenisation
+conda run --no-capture-output -n @@CONDA_ENV@@ @@INTERPRETER@@ tokenise_variable_dataset.py \
+  --plan @@PLAN@@ --worker $SLURM_ARRAY_TASK_ID \
+  --orbits-dir @@ORBITS_DIR@@ --out-dir @@TOK_OUT@@ \
+  --report @@REPORT_PREFIX@@${SLURM_ARRAY_TASK_ID}.tsv --max-r @@MAX_R@@ \
+  --largest-degree @@LARGEST_DEGREE@@ --part-length @@PART_LENGTH@@ \
+  --max-per-class @@MAX_PER_CLASS@@
+echo "TOKENISE WORKER $SLURM_ARRAY_TASK_ID DONE"

@@ -1,0 +1,11 @@
+# twin_model: training, evaluation and pair building
+torch>=2.0
+numpy
+json5
+tqdm
+scikit-learn        # evaluation metrics (accuracy, AUC, F1)
+# optional, by twin_model/training.json and the run config
+wandb               # training.wandb.mode online or offline
+tensorboardX        # run config tensorboard: true
+# optional, twin_model/release/lmfdb/mirror_fetch.py only
+# psycopg

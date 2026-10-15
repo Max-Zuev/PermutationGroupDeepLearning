@@ -1,0 +1,26 @@
+// UNION-universe Table-1, variable-length arm x analytic matrix embedding.
+// Standard variable-r format (r<=16, the union tokenisation's full range),
+// 300k/10k head-subsample of pairs_union_full (shuffled at birth).
+// Differs from cm_u_var_random ONLY in embedding init (keep in sync).
+[
+    {
+        name: 'cm_u_var_matrix',
+        __parents__: ['default'],
+
+        // run metadata (logged to wandb, not read by the code)
+        data_format: 'variable_r',
+        sig_max_r: 16,
+        train_orders: '2-500',
+        eval_orders: '2-500',
+        eval_regime: 'transductive',
+        embedding_kind: 'analytic_d24_v2',
+        train_variant: 'baseline',
+
+        data_dir: 'pairs_union_var300',
+        output_dir: 'cm_u_var',
+        wandb_run_name: 'cm_u_var_matrix',
+
+        // embedding initialisation
+        embedding_path: 'analytic_d24_v2/embedding.npy',
+    },
+]

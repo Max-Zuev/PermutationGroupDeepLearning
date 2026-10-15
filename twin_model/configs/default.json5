@@ -1,0 +1,87 @@
+// Every run setting, with the paper's values. A run config lists this file in
+// __parents__ and overrides what differs (data, embedding, output directory).
+// The groups below are only for reading: all keys become flat attributes.
+//
+// Paths: data_dir, embedding_path and output_dir are relative to the data
+// pipeline's storage root (data_dir under the root itself, embedding_path and
+// output_dir under the embeddings / outputs directories of training.json),
+// unless absolute.
+{
+    basic: {
+        output_dir: 'default',
+        seed: null,                 // null: unseeded
+        cuda: true,
+        deterministic: true,        // cudnn deterministic mode (slower)
+    },
+
+    data: {
+        data_dir: null,             // directory holding train_file and eval_file
+        train_file: 'train.csv',
+        eval_file: 'eval.csv',
+        // The embedding table: num_embeddings rows (one per possible token id:
+        // 500^2 transposition ids plus the order tokens above 250000) of
+        // embedding_dim. embedding_path (.npy of that shape) initialises it;
+        // embedding_new: true ignores the path and initialises randomly.
+        num_embeddings: 300000,
+        embedding_dim: 576,         // 24 x 24, the matrix embedding's size (paper)
+        embedding_new: false,
+        embedding_path: null,
+        embedding_requires_grad: true,
+    },
+
+    model: {
+        hidden_size: 200,
+        dropout: 0.2,
+        blocks: 3,                  // RE2 blocks in series
+        encoder: {
+            enc_layers: 2,          // CNN layers per block
+            kernel_sizes: [3],
+        },
+        alignment: 'identity',      // identity (dot-product attention), linear (projected)
+        fusion: 'full',             // full (RE2), simple
+        connection: 'aug',          // aug (augmented residual, RE2), residual, none
+        part_pooling: 'convmax',    // pooling over generators: convmax (paper), max
+        prediction: 'symmetric',    // symmetric (paper), full, simple
+    },
+
+    logging: {
+        log_file: 'log.txt',
+        log_per_samples: 5120,
+        summary_per_logs: 20,
+        tensorboard: true,
+        wandb_run_name: '',
+    },
+
+    // The schedule is written in samples; params.py converts to optimiser
+    // updates by dividing by batch_size. With grad_accum_steps = 4 an update
+    // consumes 32 samples, so each value below is in effect four times larger.
+    training: {
+        epochs: 30,
+        batch_size: 8,
+        grad_accum_steps: 4,        // effective batch 32
+        grad_clipping: 3,
+        weight_decay: 0,
+        lr: 0.002,
+        beta1: 0.9,
+        beta2: 0.999,
+        max_loss: 500000,           // abort if a batch loss exceeds this
+        lr_decay_rate: 0.94,
+        lr_decay_samples: 25600,
+        min_lr: 1e-4,
+        lr_warmup_samples: 20480,   // linear warm-up from min_lr to lr
+        time_limit: '24:00:00',     // wall clock, HH:MM:SS; stops with 5 minutes to spare
+        shuffle_buffer: 10000,      // samples per shuffle window when streaming the train file
+    },
+
+    evaluation: {
+        metric: 'acc',              // checkpoint selection and early stopping
+        watch_metrics: [],          // extra metrics to report: auc, f1
+        eval_per_samples: 1280,
+        eval_warmup_samples: 512000,        // before this: evaluate every ...
+        eval_per_samples_warmup: 51200,     // ... this many samples instead
+        min_samples: 512000,        // no early stopping before this
+        tolerance_samples: 256000,  // early stopping patience
+        eval_subset: null,          // evaluate on the first N batches only (debugging)
+        save: true,                 // keep best.pt
+    },
+}

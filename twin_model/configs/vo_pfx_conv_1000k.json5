@@ -1,0 +1,30 @@
+// Data-scaling arm: vo_full_random on a 1000k uniform subsample of the full-
+// universe train file. Curve: 100k/200k/300k/500k/1000k/1.83M.
+[
+    {
+        name: 'vo_pfx_conv_1000k',
+        __parents__: ['default'],
+
+        // run metadata (logged to wandb, not read by the code)
+        data_format: 'variable_r_union',
+        sig_max_r: 16,
+        train_orders: '2-64',
+        eval_orders: '65-500',
+        eval_regime: 'extrapolation',
+        embedding_kind: 'random_normmatched',
+        train_variant: 'pfx_convmax_1000k',
+
+        data_dir: 'pairs_union_subsets',
+        train_file: 'train_1000000.csv',
+        eval_file: 'eval_gt64_masked.csv',
+        output_dir: 'varr_pfx_conv_1000k',
+        wandb_run_name: 'vo_pfx_conv_1000k',
+
+        // embedding initialisation
+        embedding_path: 'random_normmatched_d576.npy',
+
+        // schedule overrides
+        eval_per_samples: 10240,
+        tolerance_samples: 512000,
+    },
+]

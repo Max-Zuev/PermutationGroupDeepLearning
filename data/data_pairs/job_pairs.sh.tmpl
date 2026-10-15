@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=@@JOB_NAME@@
+#SBATCH --time=@@TIME@@
+#SBATCH --mem=@@MEM@@
+#SBATCH --cpus-per-task=@@CPUS@@
+#SBATCH --output=@@LOG_DIR@@/@@JOB_NAME@@_%j.out
+#SBATCH --error=@@LOG_DIR@@/@@JOB_NAME@@_%j.err
+# Build one canonical pair set (a preset in data/pipeline.json, exact seeds).
+# RENDERED from job_pairs.sh.tmpl by data/submit.py -- edit pipeline.json.
+set -e
+module load @@MODULES@@
+export LD_LIBRARY_PATH=$HOME/.conda/envs/@@CONDA_ENV@@/lib:${LD_LIBRARY_PATH:-}
+cd @@REPO_DIR@@
+conda run --no-capture-output -n @@CONDA_ENV@@ @@INTERPRETER@@ \
+  data/data_pairs/@@BUILDER@@.py @@BUILD_ARGS@@
+@@POST_STEP@@
+echo "PAIRS @@PRESET@@ DONE"

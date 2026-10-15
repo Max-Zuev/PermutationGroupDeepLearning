@@ -1,0 +1,25 @@
+# Editor / tooling
+.claude/
+.idea/
+.vscode/
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local run artifacts (regenerable)
+wandb/
+*.pt
+
+# LMFDB group-property cache (built by twin_model/release/lmfdb/)
+twin_model/release/lmfdb/cache.json
+twin_model/release/lmfdb/gap_records.json

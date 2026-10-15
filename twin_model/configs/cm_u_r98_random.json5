@@ -1,0 +1,27 @@
+// UNION-universe Table-1, uncapped-r arm x random embedding.
+// Signatures up to r=98 from the dedicated union retokenisation
+// (tokenised_union_r98, TOK_MAX_R=98 over group_data + group_data_new_combined);
+// the standard union tokenisation caps r at 16.
+// Differs from cm_u_r98_matrix ONLY in embedding init (keep in sync).
+[
+    {
+        name: 'cm_u_r98_random',
+        __parents__: ['default'],
+
+        // run metadata (logged to wandb, not read by the code)
+        data_format: 'variable_r',
+        sig_max_r: 98,
+        train_orders: '2-500',
+        eval_orders: '2-500',
+        eval_regime: 'transductive',
+        embedding_kind: 'random_normmatched',
+        train_variant: 'r98',
+
+        data_dir: 'pairs_union_r98',
+        output_dir: 'cm_u_r98',
+        wandb_run_name: 'cm_u_r98_random',
+
+        // embedding initialisation
+        embedding_path: 'random_normmatched_d576.npy',
+    },
+]

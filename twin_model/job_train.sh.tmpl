@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH --job-name=@@JOB_NAME@@
+#SBATCH --time=@@TIME@@
+#SBATCH --mem=@@MEM@@
+#SBATCH --cpus-per-task=@@CPUS@@
+#SBATCH --partition=@@PARTITION@@
+#SBATCH --gres=@@GRES@@
+#SBATCH --output=@@LOG_DIR@@/@@JOB_NAME@@_%j.out
+#SBATCH --error=@@LOG_DIR@@/@@JOB_NAME@@_%j.err
+# Train one run config, then write the best checkpoint's per-pair probabilities
+# on the run group's test set(s) (the numbers the paper reports). RENDERED from
+# job_train.sh.tmpl by twin_model/submit.py -- edit training.json or the config.
+set -e
+module load @@MODULES@@
+export LD_LIBRARY_PATH=$HOME/.conda/envs/@@CONDA_ENV@@/lib:${LD_LIBRARY_PATH:-}
+cd @@REPO_DIR@@/twin_model
+conda run --no-capture-output -n @@CONDA_ENV@@ @@INTERPRETER@@ train.py configs/@@CONFIG@@.json5
+CHECKPOINT=@@CHECKPOINT@@
+test -s $CHECKPOINT || { echo "no checkpoint at $CHECKPOINT"; exit 1; }
+mkdir -p @@PREDICTIONS_DIR@@
+@@SCORE_STEPS@@
+echo "TRAIN @@CONFIG@@ DONE"

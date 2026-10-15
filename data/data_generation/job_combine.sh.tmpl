@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --job-name=@@JOB_NAME@@
+#SBATCH --time=@@TIME@@
+#SBATCH --mem=@@MEM@@
+#SBATCH --cpus-per-task=@@CPUS@@
+#SBATCH --output=@@LOG_DIR@@/@@JOB_NAME@@_%j.out
+#SBATCH --error=@@LOG_DIR@@/@@JOB_NAME@@_%j.err
+# Merge each group's per-signature orbit items from the staging dir into one
+# .sobj in the orbit store, once all of the group's items are resolved. RENDERED from
+# job_combine.sh.tmpl by data/submit.py -- edit data/pipeline.json.
+set -e
+module load @@MODULES@@
+cd @@REPO_DIR@@/data/data_generation
+conda run --no-capture-output -n @@CONDA_ENV@@ @@INTERPRETER@@ combine_orbits.py \
+  --inventory @@INVENTORY@@ \
+  --staging-dir @@STAGING_DIR@@ --orbits-dir @@ORBITS_DIR@@ \
+  --max-order @@MAX_ORDER@@ --max-r @@MAX_R@@
+echo "COMBINE DONE"

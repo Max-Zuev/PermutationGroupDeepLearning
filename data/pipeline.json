@@ -1,0 +1,117 @@
+{
+  "_about": "THE pipeline configuration. Every storage location, SLURM resource and dataset parameter lives here; scripts contain none. Edit this file for a new account/HPC (storage.root, hpc.*), to retune a job (stages.*.resources), or to change/add a dataset (stages.pairs.presets). Job scripts are templates rendered from these values by data/submit.py.",
+
+  "storage": {
+    "root": "/mnt/scratch/sc23as2/max_project",
+    "inventory": "groupsignaturedata.txt",
+    "orbits": "group_data",
+    "orbits_staging": "group_data_new",
+    "rescore": "rescore",
+    "tokenised": {
+      "union": "tokenised_union_full",
+      "union_r98": "tokenised_union_r98",
+      "original": "tokenised_variable",
+      "frontier": "tokenised_variable_new"
+    },
+    "datasets": {
+      "census": "pairs_union_census/eval_uniform_classes.csv",
+      "census-full": "pairs_union_census/eval_uniform_all_orders.csv",
+      "big-eval": "pairs_union_bigeval/eval_gt64_masked.csv",
+      "selection-gt64": "pairs_union_full/eval_gt64_masked.csv",
+      "train-union": "pairs_union_full/train.csv",
+      "train-union-le64": "pairs_union_full/train_le64_masked.csv",
+      "r4-train": "pairs_union_r4/train.csv",
+      "r4-val": "pairs_union_r4/eval.csv",
+      "var-train": "pairs_union_var300/train.csv",
+      "var-val": "pairs_union_var300/eval.csv",
+      "r98-train": "pairs_union_r98/train.csv",
+      "r98-val": "pairs_union_r98/eval.csv"
+    }
+  },
+
+  "hpc": {
+    "repo_dir": "$HOME/PermutationGroupDeepLearning",
+    "log_dir": "$HOME/logs/pipeline",
+    "rendered_dir": "$HOME/logs/pipeline/rendered",
+    "modules": "miniforge",
+    "conda_env": "sage-math"
+  },
+
+  "stages": {
+    "orbits": {
+      "template": "data/data_generation/job_orbits.sh.tmpl",
+      "interpreter": "sage -python",
+      "resources": {"time": "08:00:00", "mem": "24G", "cpus": 1, "array": 100},
+      "params": {"max_order": 500, "max_r": 16, "max_search_space": 5e7,
+                 "max_orbit_size": 2000000, "max_vectors_per_class": 200}
+    },
+    "combine": {
+      "template": "data/data_generation/job_combine.sh.tmpl",
+      "interpreter": "sage -python",
+      "resources": {"time": "04:00:00", "mem": "16G", "cpus": 1}
+    },
+    "tokenise": {
+      "template": "data/data_tokenisation/job_tokenise.sh.tmpl",
+      "interpreter": "sage --python",
+      "resources": {"time": "12:00:00", "mem": "16G", "cpus": 1, "array": 10},
+      "params": {"largest_degree": 500, "part_length": 128, "max_vectors_per_class": 200},
+      "universes": {
+        "union": {"max_r": 16},
+        "union_r98": {"max_r": 98}
+      }
+    },
+    "pairs": {
+      "template": "data/data_pairs/job_pairs.sh.tmpl",
+      "interpreter": "python -u",
+      "resources": {"time": "12:00:00", "mem": "64G", "cpus": 1},
+      "presets": {
+        "train-union": {
+          "builder": "pairs_variable", "tokenised": "union", "out_dir": "pairs_union_full",
+          "args": {"pairs": 2000000, "eval-pairs": 60000, "seed": 0}
+        },
+        "big-eval": {
+          "builder": "pairs_variable", "tokenised": "union", "out_dir": "pairs_union_bigeval",
+          "args": {"pairs": 1000, "eval-pairs": 400000, "seed": 1},
+          "order_split": {"threshold": 64}
+        },
+        "r4": {
+          "builder": "pairs_variable", "tokenised": "union", "out_dir": "pairs_union_r4",
+          "args": {"pairs": 300000, "eval-pairs": 10000, "sig-len": 4, "seed": 3}
+        },
+        "r98": {
+          "builder": "pairs_variable", "tokenised": "union_r98", "out_dir": "pairs_union_r98",
+          "args": {"pairs": 300000, "eval-pairs": 10000, "seed": 4}
+        },
+        "census": {
+          "builder": "pairs_uniform_classes", "tokenised": "union",
+          "out": "pairs_union_census/eval_uniform_classes.csv",
+          "args": {"min-order": 64, "per-class-pos": 4, "per-class-neg": 4, "seed": 11}
+        },
+        "census-full": {
+          "builder": "pairs_uniform_classes", "tokenised": "union",
+          "out": "pairs_union_census/eval_uniform_all_orders.csv",
+          "args": {"min-order": 1, "per-class-pos": 4, "per-class-neg": 4,
+                   "target-pairs": 86760, "seed": 13}
+        },
+        "var300": {
+          "_about": "Table 1, r <= 16 rows: 300k/10k prefix of the shuffled train-union files",
+          "builder": "prefix_pairs",
+          "copies": [["pairs_union_full/train.csv", "pairs_union_var300/train.csv", 300000],
+                     ["pairs_union_full/eval.csv", "pairs_union_var300/eval.csv", 10000]]
+        },
+        "le64-subsets": {
+          "_about": "Table 2 training sets: prefixes of the |G| <= 64 training file (train-union + order_split)",
+          "builder": "prefix_pairs",
+          "copies": [["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_100000.csv", 100000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_200000.csv", 200000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_300000.csv", 300000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_500000.csv", 500000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_800000.csv", 800000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_1000000.csv", 1000000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_1300000.csv", 1300000],
+                     ["pairs_union_full/train_le64_masked.csv", "pairs_union_subsets/train_2000000.csv", 2000000]]
+        }
+      }
+    }
+  }
+}

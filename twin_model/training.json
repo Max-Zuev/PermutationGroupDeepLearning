@@ -1,0 +1,46 @@
+{
+  "_about": "Model-side configuration: where runs write, how they are logged, and how training jobs are submitted. Run configs (configs/*.json5) give data_dir, embedding_path and output_dir relative to the directories here. The datasets themselves are the data pipeline's: storage root, dataset registry and token block length are read from data_pipeline.",
+
+  "data_pipeline": "../data/pipeline.json",
+
+  "storage": {
+    "_about": "Directories under the data pipeline's storage.root.",
+    "outputs": "outputs",
+    "embeddings": "embeddings",
+    "predictions": "predictions"
+  },
+
+  "wandb": {
+    "mode": "online",
+    "entity": "aapache-uol",
+    "project": "TwinModel",
+    "_modes": "online: log to wandb.ai; offline: log locally for a later `wandb sync` (no network needed); disabled: no logging, wandb not imported"
+  },
+
+  "hpc": {
+    "repo_dir": "$HOME/PermutationGroupDeepLearning",
+    "log_dir": "$HOME/logs/training",
+    "rendered_dir": "$HOME/logs/training/rendered",
+    "modules": "miniforge",
+    "conda_env": "sage-math",
+    "interpreter": "python -u",
+    "template": "job_train.sh.tmpl",
+    "resources": {"time": "24:00:00", "mem": "64G", "cpus": 1, "partition": "gpu", "gres": "gpu:1"}
+  },
+
+  "groups": {
+    "_about": "The paper's runs. A job trains the config and then scores its best checkpoint on the group's test set(s) (names from the data pipeline's dataset registry), writing <storage.predictions>/<run>__<dataset>.csv.",
+    "table1": {
+      "_about": "embedding x signature length, trained on all orders",
+      "configs": ["cm_u_r4_random", "cm_u_r4_matrix", "cm_u_var_random", "cm_u_var_matrix",
+                  "cm_u_r98_random", "cm_u_r98_matrix"],
+      "score_on": ["census-full"]
+    },
+    "table2": {
+      "_about": "training-set size, trained on |G| <= 64, tested on |G| > 64",
+      "configs": ["vo_pfix_conv_100k", "vo_pfx_conv_200k", "vo_pfx_conv_300k", "vo_pfx_conv_500k",
+                  "vo_pfx_conv_800k", "vo_pfx_conv_1000k", "vo_pfx_conv_1300k", "vo_pfx_conv_2000k"],
+      "score_on": ["census", "big-eval"]
+    }
+  }
+}

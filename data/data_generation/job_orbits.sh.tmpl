@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --job-name=@@JOB_NAME@@
+#SBATCH --array=0-@@ARRAY_MAX@@
+#SBATCH --time=@@TIME@@
+#SBATCH --mem=@@MEM@@
+#SBATCH --cpus-per-task=@@CPUS@@
+#SBATCH --output=@@LOG_DIR@@/@@JOB_NAME@@_%A_%a.out
+#SBATCH --error=@@LOG_DIR@@/@@JOB_NAME@@_%A_%a.err
+# Braid+Aut orbit computation over the work-item list; resumable (existing
+# outputs skip). RENDERED from job_orbits.sh.tmpl by data/submit.py --
+# edit data/pipeline.json, not the rendered copy.
+set -e
+module load @@MODULES@@
+cd @@REPO_DIR@@/data/data_generation
+conda run --no-capture-output -n @@CONDA_ENV@@ @@INTERPRETER@@ orbits_fast.py \
+  --plan @@PLAN@@ --worker $SLURM_ARRAY_TASK_ID \
+  --report @@REPORT_PREFIX@@${SLURM_ARRAY_TASK_ID}.tsv \
+  --out-dir @@STAGING_DIR@@ \
+  --max-search-space @@MAX_SEARCH_SPACE@@ --max-orbit-size @@MAX_ORBIT_SIZE@@ \
+  --max-per-class @@MAX_PER_CLASS@@
+echo "ORBITS WORKER $SLURM_ARRAY_TASK_ID DONE"
